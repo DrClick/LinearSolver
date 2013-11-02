@@ -16,7 +16,7 @@ class Dictionary:
     def __init__(self, m, n):
         _basic = array('i')
         _nonbasic = array('i')
-        _A = mat()
+        _A = empty(shape=(m, n))
         _B = array('f')
         _C = array('f')
 
@@ -25,7 +25,7 @@ class Dictionary:
 
 
         #basic and A matrix
-        for i in range(self._basic.Length):
+        for i in range(len(self._basic)):
             sb.Append("X{0}\t| {1}\t ".format(self._basic[i], self._B[i]))
             sb.AppendLine(self._A[i, :])
 
@@ -132,7 +132,8 @@ class Dictionary:
 
         return self._
 
-    def parseFromFile(self, filename):
+    @staticmethod
+    def parseFromFile(filename):
         data = open(filename, "r").readlines()
         mn = data[0].split()
         m = int(mn[0])
@@ -140,7 +141,7 @@ class Dictionary:
         basic = [int(x) for x in data[1].split()]
         nonbasic = [int(x) for x in data[2].split()]
         B = [float(x) for x in data[3].split()]
-        A = mat(m, n)
+        A = empty(shape=(m, n))
         C = [float(x) for x in data[4 + m].split()[1:]]
         z = float(data[4 + m].split()[0])
 
@@ -158,4 +159,4 @@ class Dictionary:
         d._nonbasic = nonbasic
         d._z = z
 
-        return dict
+        return d
