@@ -1,7 +1,6 @@
-from array import array
+
 from numpy import *
-import scipy as Sci
-import scipy.linalg
+import sys
 import Watson
 
 class Dictionary:
@@ -46,7 +45,7 @@ class Dictionary:
                 if self._nonbasic[i] < candidateVar:
                     candidateVar = self._nonbasic[i]
 
-        if candidateVar < int.MaxValue:
+        if candidateVar < sys.maxint:
             return candidateVar  #not finalized
         return -1  #Finalized
 
@@ -60,14 +59,15 @@ class Dictionary:
         #find the smallest contraint where A[?,entering] is negative
         for i in range(len(self._A)):
             a = self._A[i, enterIndex]
-            constraint = math.abs(self._B[i] / a)
+            if a < 0:
+                constraint = abs(self._B[i] / a)
 
-            if a < 0 and constraint <= smallestContraint:
-                if indexOfSmallest == -1 \
-                    or constraint == smallestContraint and self._basic[i] < self._basic[indexOfSmallest] \
-                    or constraint < smallestContraint:
-                    smallestContraint = constraint
-                    indexOfSmallest = i
+                if constraint <= smallestContraint:
+                    if indexOfSmallest == -1 \
+                        or constraint == smallestContraint and self._basic[i] < self._basic[indexOfSmallest] \
+                        or constraint < smallestContraint:
+                        smallestContraint = constraint
+                        indexOfSmallest = i
 
         return self._basic[indexOfSmallest] if indexOfSmallest >= 0 else -1
 
@@ -130,7 +130,7 @@ class Dictionary:
         #calculate new z
         self._z = self._z + finalMultipler * self._B[leaveIndex]
 
-        return self._
+        return self._z
 
     @staticmethod
     def parseFromFile(filename):
