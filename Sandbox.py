@@ -6,3 +6,4 @@ from Watson import StringBuilder
 
 A = mat([[1, 2, 3], [4, 5, 6]])
 print A[1,1:]
+#wtF

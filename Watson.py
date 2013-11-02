@@ -1,7 +1,6 @@
 __author__ = 'thomaswatson'
 from cStringIO import StringIO
 
-
 class StringBuilder:
     _file_str = None
 

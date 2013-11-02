@@ -4,7 +4,6 @@ import scipy as Sci
 import scipy.linalg
 import Watson
 
-
 class Dictionary:
     # Represents a linear programming problem in standard form Max. cTx S.T. Ax <= b
     _basic = None
