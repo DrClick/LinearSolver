@@ -2,8 +2,6 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="1c2dd9b9-1b22-4b89-9160-54b3f3e0017c" name="Default" comment="">
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/Dictionary.py" afterPath="$PROJECT_DIR$/Dictionary.py" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/Sandbox.py" afterPath="$PROJECT_DIR$/Sandbox.py" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/workspace.xml" afterPath="$PROJECT_DIR$/.idea/workspace.xml" />
     </list>
     <ignored path="LinearSolver.iws" />
@@ -426,7 +424,11 @@
       <created>1383421406296</created>
       <updated>1383421406296</updated>
     </task>
-    <option name="localTasksCounter" value="3" />
+    <task id="LOCAL-00003" summary="Pivoting working">
+      <created>1383423980057</created>
+      <updated>1383423980057</updated>
+    </task>
+    <option name="localTasksCounter" value="4" />
     <servers />
   </component>
   <component name="ToolWindowManager">
@@ -462,7 +464,8 @@
     </option>
     <MESSAGE value="Basic start" />
     <MESSAGE value="Reading in Dictionary successfully from file" />
-    <option name="LAST_COMMIT_MESSAGE" value="Reading in Dictionary successfully from file" />
+    <MESSAGE value="Pivoting working" />
+    <option name="LAST_COMMIT_MESSAGE" value="Pivoting working" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
