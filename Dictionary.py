@@ -4,7 +4,7 @@ import sys
 import Watson
 
 class Dictionary:
-    # Represents a linear programming problem in standard form Max. cTx S.T. Ax <= b
+    # Represents a linear programming problem in standard form Max. cTx S.T. Ax = b (slack variables added)
     _basic = None
     _nonbasic = None
     _A = None
@@ -118,12 +118,14 @@ class Dictionary:
             #skip this row if it is the leaving row
             if i != leaveIndex:
                 multiplier = self._A[i, enterIndex]
+                self._A[i, enterIndex] = 0
                 self._B[i] = self._B[i] + multiplier * self._B[leaveIndex]
                 for j in range(shape(self._A)[1]):
                     self._A[i, j] = self._A[i, j] + multiplier * self._A[leaveIndex, j]
 
         #substitute C
         finalMultipler = self._C[enterIndex]
+        self._C[enterIndex] = 0
         for i in range(len(self._C)):
             self._C[i] = self._C[i] + finalMultipler * self._A[leaveIndex, i]
 
