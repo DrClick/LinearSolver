@@ -2,22 +2,23 @@ from numpy import *
 import sys
 import Watson
 
-"""
-Rudimentary implementation of simplex algorithm of Linear Programming. The following LaTex will show what a dictionary
-looks like
 
-\begin{array}{c| c c c c c }
-x_{B1} & b_1 & + a_{11} x_{N1} & + \cdots + & a_{1n} x_{Nn} \\
-\vdots & \vdots &  & \ddots & \\
-x_{Bj} & b_j & + a_{j1} x_{N1} & + \cdots + & a_{jn} x_{Nn}\\
-\vdots & \\
-x_{Bm} & b_m & + a_{m1} x_{N1} & + \cdots + & a_{mn} x_{Nn} \\
-\hline
-z & z_0 & + c_1 x_{N1} & + \cdots + & c_n x_{Nn} \\
-\end{array}
-
-"""
 class SimplexDictionary:
+    """
+    Rudimentary implementation of simplex algorithm of Linear Programming. The following LaTex will show what a dictionary
+    looks like
+
+    \begin{array}{c| c c c c c }
+    x_{B1} & b_1 & + a_{11} x_{N1} & + \cdots + & a_{1n} x_{Nn} \\
+    \vdots & \vdots &  & \ddots & \\
+    x_{Bj} & b_j & + a_{j1} x_{N1} & + \cdots + & a_{jn} x_{Nn}\\
+    \vdots & \\
+    x_{Bm} & b_m & + a_{m1} x_{N1} & + \cdots + & a_{mn} x_{Nn} \\
+    \hline
+    z & z_0 & + c_1 x_{N1} & + \cdots + & c_n x_{Nn} \\
+    \end{array}
+
+    """
     # Represents a linear programming problem in standard form Max. cTx S.T. Ax = b (slack variables added)
     _basic = None
     _nonbasic = None
@@ -52,10 +53,10 @@ class SimplexDictionary:
 
         return sb.__str__()
 
-    """
-    Determines what variable should enter for the pivot, -1 if dictionary is final. Uses Bland's Rule for breaking ties
-    """
     def calc_entering_variable(self):
+        """
+        Determines what variable should enter for the pivot, -1 if dictionary is final. Uses Bland's Rule for breaking ties
+        """
         #find the lowest index positive coefficient of C (Blands Rule)
         candidate_var = sys.maxint
         for i, c in enumerate(self._C):
@@ -65,12 +66,11 @@ class SimplexDictionary:
 
         return candidate_var if candidate_var < sys.maxint else -1
 
-    """
-    Determines the leaving variable given the entering variable. Returns -1 if unbounded. Uses Bland's Rule for breaking
-    ties
-    """
     def calc_leaving_variable(self, entering):
-
+        """
+        Determines the leaving variable given the entering variable. Returns -1 if unbounded. Uses Bland's Rule for breaking
+        ties
+        """
         enter_index = self.__get_entering_index(entering)
         smallest_constraint = float("inf")
         index_of_smallest = -1
@@ -95,12 +95,13 @@ class SimplexDictionary:
     def __get_leaving_index(self, leaving):
         return self._basic.index(leaving)
 
-    """
-    Pivots the dictionary. See https://class.coursera.org/linearprogramming-001/lecture/45 for an explanation of the
-    logic. Basically, enter the dictionary, solve for the new leaving variable, and finally do
-    algebraic substitution to find the new dictionary.
-    """
+
     def pivot(self, entering, leaving):
+        """
+        Pivots the dictionary. See https://class.coursera.org/linearprogramming-001/lecture/45 for an explanation of the
+        logic. Basically, enter the dictionary, solve for the new leaving variable, and finally do
+        algebraic substitution to find the new dictionary.
+        """
         enter_index = self.__get_entering_index(entering)
         leave_index = self.__get_leaving_index(leaving)
 
@@ -141,21 +142,24 @@ class SimplexDictionary:
 
         return self._z
 
-    """
-    Reads in dictionary from file with the following format:
 
-    [Line 1] m n
-    [Line 2] B1 B2 ... Bm [the list of basic indices m integers]
-    [Line 3] N1 N2 ... Nn [the list of non-basic indices n integers]
-    [Line 4] b1 .. bm (m floating point numbers)
-    [Line 5] a11 ... a1n (first row coefficients. See dictionary notation above.)
-    ....
-    [Line m+4] am1 ... amn (mth row coefficients. See dictionary notation above.)
-    [Line m+5] z0 c1 .. cn (objective coefficients (n+1 floating point numbers))
-    """
     @staticmethod
     def parse_from_file(filename):
-        data = open(filename, "r").readlines()
+        """
+        Reads in dictionary from file with the following format:
+
+        [Line 1] m n
+        [Line 2] B1 B2 ... Bm [the list of basic indices m integers]
+        [Line 3] N1 N2 ... Nn [the list of non-basic indices n integers]
+        [Line 4] b1 .. bm (m floating point numbers)
+        [Line 5] a11 ... a1n (first row coefficients. See dictionary notation above.)
+        ....
+        [Line m+4] am1 ... amn (mth row coefficients. See dictionary notation above.)
+        [Line m+5] z0 c1 .. cn (objective coefficients (n+1 floating point numbers))
+        """
+        data = None
+        with open(filename, "r") as file_handle:
+            data = file_handle.readlines()
 
         mn = data[0].split()
         m = int(mn[0])
