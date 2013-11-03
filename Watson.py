@@ -7,10 +7,10 @@ class StringBuilder:
     def __init__(self):
         self._file_str = StringIO()
 
-    def Append(self, str):
+    def append(self, str):
         self._file_str.write(str)
 
-    def AppendLine(self, str):
+    def appendLine(self, str):
         self._file_str.write("{0}\n".format(str))
 
     def __str__(self):

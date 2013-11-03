@@ -1,11 +1,11 @@
 __author__ = 'thomaswatson'
 
-from Dictionary import Dictionary
+from SimplexDictionary import SimplexDictionary
 
 def pivotDictionary(filename):
-    myDictionary = Dictionary.parseFromFile(filename)
-    entering = myDictionary.calcEnteringVariable()
-    leaving = myDictionary.calcLeavingVariable(entering)
+    myDictionary = SimplexDictionary.parse_from_file(filename)
+    entering = myDictionary.calc_entering_variable()
+    leaving = myDictionary.calc_leaving_variable(entering)
     objectiveValue = myDictionary.pivot(entering, leaving)
 
     if leaving != -1:
