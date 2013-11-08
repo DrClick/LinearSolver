@@ -36,12 +36,12 @@ class SimplexDictionary:
 
     def __init__(self, m, n, mode, debug=None):
         self.__debug = debug
-        _basic = np.array('i')
-        _nonbasic = np.array('i')
-        _A = np.empty(shape=(m, n))
-        _B = np.array('f')
-        _C = np.array('f')
-        _mode = self._modes[mode]
+        self._basic = np.array('i')
+        self._nonbasic = np.array('i')
+        self._A = np.empty(shape=(m, n))
+        self._B = np.array('f')
+        self._C = np.array('f')
+        self._mode = self._modes[mode]
 
     def __str__(self):
         sb = Watson.StringBuilder()
@@ -170,18 +170,36 @@ class SimplexDictionary:
         result = self.pivot_until_final()
 
         #if the dictionary was finalized in the dual, switch it back to the primal mode
-        if result == self._status["FINALIZED"] and self._isInDualMode:
+        if result["status"] == self._status["FINALIZED"] and self._isInDualMode:
             self.toggle_dual_problem()
 
-
-
-        #if result == self._status["FINALIZED"] and self._mdoe == self._modes["LINEAR"]:
-
+        #check for integers if in integer mode
+        if result["status"] == self._status["FINALIZED"] and self._mode == self._modes["INTEGER"]:
+            if not all([i == int(i) for i in self._B]):
+                self.add_cutting_plane()
+                result["status"] = self._status["PIVOTING"]
+                self.solve()
 
         return result
 
+    def add_cutting_plane(self):
+        """
+        Adds a Gomory/Chvatal cutting plane constraint
+        """
 
+        #find the first partial B
+        cutting_var_index = np.nonzero(self._B != [int(i) for i in self._B])[0][0]
+        b = -(self._B[cutting_var_index] - np.floor(self._B[cutting_var_index]))
+        a = -self._A[cutting_var_index, :] - np.floor(-self._A[cutting_var_index, :])
+        basic = max(max(self._nonbasic), max(self._basic)) + 1  # gets the next available var for the new constraint
 
+        self._A = np.vstack((self._A, a))
+        self._B = np.hstack((self._B, b))
+        self._basic = np.hstack((self._basic, basic))
+
+        if self.__debug:
+            print "dictionary after dded cutting plane"
+            print self
 
     def toggle_dual_problem(self):
         """
@@ -247,7 +265,7 @@ class SimplexDictionary:
         return {"status": result, "objective_value": objective_value, "num_iterations": iterations}
 
     @staticmethod
-    def parse_from_file(filename, mode = "LINEAR", debug=False):
+    def parse_from_file(filename, mode="LINEAR", debug=False):
         """
         Reads in dictionary from file with the following format:
 
