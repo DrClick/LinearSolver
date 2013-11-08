@@ -1,6 +1,7 @@
-from numpy import *
+import numpy as np
 import sys
 import Watson
+
 
 
 class SimplexDictionary:
@@ -26,14 +27,21 @@ class SimplexDictionary:
     _B = None
     _C = None
     _z = None
+    _isInDualMode = False
+    _mode = None
 
-    def __init__(self, m, n, debug=None):
+    _status = {'FINALIZED': 0, 'PIVOTING': 1, 'UNBOUNDED': 2, 'UNFEASIBLE': 3}
+    _modes = {'INTEGER': 0, 'LINEAR': 1}
+
+
+    def __init__(self, m, n, mode, debug=None):
         self.__debug = debug
-        _basic = array('i')
-        _nonbasic = array('i')
-        _A = empty(shape=(m, n))
-        _B = array('f')
-        _C = array('f')
+        _basic = np.array('i')
+        _nonbasic = np.array('i')
+        _A = np.empty(shape=(m, n))
+        _B = np.array('f')
+        _C = np.array('f')
+        _mode = self._modes[mode]
 
     def __str__(self):
         sb = Watson.StringBuilder()
@@ -77,8 +85,8 @@ class SimplexDictionary:
 
         #find the smallest constraint where A[?,entering] is negative
         for i, a in enumerate(self._A[:, enter_index]):
-            if a < 0:
-                constraint = abs(self._B[i] / a)
+            if a < 0 or entering == 0:
+                constraint = self._B[i] / abs(a)
 
                 if constraint <= smallest_constraint:
                     if (index_of_smallest == -1
@@ -90,11 +98,10 @@ class SimplexDictionary:
         return self._basic[index_of_smallest] if index_of_smallest >= 0 else -1
 
     def __get_entering_index(self, entering):
-        return self._nonbasic.index(entering)
+        return np.nonzero(self._nonbasic == entering)[0][0]
 
     def __get_leaving_index(self, leaving):
-        return self._basic.index(leaving)
-
+        return np.nonzero(self._basic == leaving)[0][0]
 
     def pivot(self, entering, leaving):
         """
@@ -102,6 +109,9 @@ class SimplexDictionary:
         logic. Basically, enter the dictionary, solve for the new leaving variable, and finally do
         algebraic substitution to find the new dictionary.
         """
+        if entering == -1 or leaving == -1:
+            return None
+
         enter_index = self.__get_entering_index(entering)
         leave_index = self.__get_leaving_index(leaving)
 
@@ -123,7 +133,7 @@ class SimplexDictionary:
         self._A[leave_index, :] /= coeff_entering
 
         #add the entering row to each other row of A, B and C multiplied by the coefficient
-        rows_in_a = shape(self._A)[0]
+        rows_in_a = np.shape(self._A)[0]
         for i in xrange(rows_in_a):
             #skip this row if it is the leaving row
             if i != leave_index:
@@ -142,9 +152,102 @@ class SimplexDictionary:
 
         return self._z
 
+    def solve(self):
+        """
+        Solves the linear program by first determine if the dictionary is feasible, if not, then it converts the problem
+        to the dual and then solves.
+
+        If dual, the problem is converted back to the original problem when finalized
+
+        If this is integer ILP, then the solution uses Gomory/Chvatal cutting planes to reduce the feasible space to
+        the integer hull.
+        """
+
+        #determine if feasible
+        if not all([i >= 0 for i in self._B]):
+            self.toggle_dual_problem()
+
+        result = self.pivot_until_final()
+
+        #if the dictionary was finalized in the dual, switch it back to the primal mode
+        if result == self._status["FINALIZED"] and self._isInDualMode:
+            self.toggle_dual_problem()
+
+
+
+        #if result == self._status["FINALIZED"] and self._mdoe == self._modes["LINEAR"]:
+
+
+        return result
+
+
+
+
+    def toggle_dual_problem(self):
+        """
+        Toggles the problem between being in the dual form or primal
+        The dual given the dictionary is in the form:
+            max c^{T}
+            S.T Ax <= b
+
+            is
+
+            max -b^{T}y
+            S.T. -A^{T}y <= c
+        """
+        self._isInDualMode = not self._isInDualMode
+
+        #change the variables
+        (self._basic, self._nonbasic) = self._nonbasic, self._basic
+        #convert their values
+        (self._B, self._C) = self._C * -1, self._B * -1
+        #negate the objective
+        self._z = -self._z
+        #transponse and negate A
+        self._A = -1 * np.transpose(self._A)
+
+    def pivot_until_final(self):
+        """
+        Pivots the dictionary until it is final and reports the final objective value and number of pivots
+        used to find the final dictionary
+        """
+
+        result = self._status["PIVOTING"]
+        objective_value = None
+        iterations = 0
+
+        while result == self._status["PIVOTING"]:
+            entering = self.calc_entering_variable()
+            if entering == -1:
+                result = self._status["FINALIZED"]
+                break
+
+            leaving = self.calc_leaving_variable(entering)
+
+            if self.__debug:
+                print "Iteration: {0}".format(iterations)
+                print self
+                print "entering: {0} - {1}".format(entering, self._nonbasic)
+                print "leaving: {0} - {1}".format(leaving, self._basic)
+                print "\n\n"
+
+            if entering != -1 and leaving != -1:
+                objective = self.pivot(entering, leaving)
+                iterations += 1
+
+                if objective is not None:
+                    objective_value = objective
+
+            else:
+                if leaving == -1:
+                    result = self._status["UNBOUNDED"]
+                else:
+                    result = self._status["FINALIZED"]
+
+        return {"status": result, "objective_value": objective_value, "num_iterations": iterations}
 
     @staticmethod
-    def parse_from_file(filename):
+    def parse_from_file(filename, mode = "LINEAR", debug=False):
         """
         Reads in dictionary from file with the following format:
 
@@ -168,7 +271,7 @@ class SimplexDictionary:
         nonbasic = [int(x) for x in data[2].split()]
 
         B = [float(x) for x in data[3].split()]
-        A = empty(shape=(m, n))
+        A = np.empty(shape=(m, n))
         C = [float(x) for x in data[4 + m].split()[1:]]
         z = float(data[4 + m].split()[0])
 
@@ -178,12 +281,12 @@ class SimplexDictionary:
             for j, r in enumerate(row):
                 A[i, j] = r
 
-        d = SimplexDictionary(m, n)
+        d = SimplexDictionary(m, n, mode, debug)
         d._A = A
-        d._B = B
-        d._C = C
-        d._basic = basic
-        d._nonbasic = nonbasic
+        d._B = np.array(B)
+        d._C = np.array(C)
+        d._basic = np.array(basic)
+        d._nonbasic = np.array(nonbasic)
         d._z = z
 
         return d

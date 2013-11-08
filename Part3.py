@@ -1,15 +1,16 @@
 __author__ = 'thomaswatson'
-from SimplexDictionary import SimplexDictionary
 import sys
+from SimplexDictionary import SimplexDictionary
 
-def pivot_dictionary_until_final(filename):
+
+def init_dict(filename, debug):
     """
     Pivots the dictionary until it is final and reports the final objective value and number of pivots
     used to find the final dictionary
     """
-    my_dictionary = SimplexDictionary.parse_from_file(filename)
+    my_dictionary = SimplexDictionary.parse_from_file(filename, debug)
 
-    print my_dictionary.pivot_until_final()
+    print my_dictionary.initialize()
 
 
 #For all the glory, solve the dictionaries
@@ -18,9 +19,9 @@ def main():
     """
     Will pivot all the dictionaries in the assignment
     """
-    for i in range(1,6):
+    for i in xrange(1,7):
         print "Dict{0}".format(i)
-        pivot_dictionary_until_final("/Users/thomaswatson/code/coursera/linear/LinearSolver/dicts/part2TestCases/assignmentParts/part{0}.dict".format(i))
+        init_dict("/Users/thomaswatson/code/coursera/linear/LinearSolver/dicts/initializationTests/assignmentTests/part{0}.dict".format(i), False)
 
     return 0
 

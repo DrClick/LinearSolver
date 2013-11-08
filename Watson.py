@@ -15,3 +15,8 @@ class StringBuilder:
 
     def __str__(self):
         return self._file_str.getvalue()
+
+
+def enum(*sequential, **named):
+    enums = dict(zip(sequential, range(len(sequential))), **named)
+    return type('Enum', (), enums)
