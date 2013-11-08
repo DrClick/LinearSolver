@@ -1,4 +1,8 @@
 __author__ = 'thomaswatson'
+"""
+This module is no longer relevant. This was an interim step in the solver
+"""
+
 import sys
 from SimplexDictionary import SimplexDictionary
 
